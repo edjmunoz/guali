@@ -39,6 +39,7 @@ jobs:
             **/target/failsafe-reports/
 
   dependency-graph:
+    continue-on-error: true
     # Only on pushes to main: fork PRs get a read-only token and would fail
     if: github.event_name == 'push'
     needs: build
