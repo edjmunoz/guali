@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acceso administrador · Guali Dev</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/tema.js}"></script>
+</head>
+<body>
+<main class="pagina-simple">
+    <div class="tarjeta login">
+        <div class="marca" style="margin-bottom:1rem">
+            <span class="logo" aria-hidden="true">G</span> Guali Dev
+        </div>
+        <h1 style="font-size:1.25rem;margin:0 0 .25rem">Acceso administrador</h1>
+        <p class="texto-suave" style="margin-top:0">Los estudiantes no necesitan iniciar sesión.</p>
+
+        <div th:if="${param.error}" class="alerta error" style="margin-bottom:1rem">Usuario o contraseña incorrectos (o usuario inactivo).</div>
+        <div th:if="${param.salir}" class="alerta ok" style="margin-bottom:1rem">Cerraste sesión correctamente.</div>
+
+        <form th:action="@{/login}" method="post" class="formulario">
+            <label>Usuario
+                <input type="text" name="username" autocomplete="username" required autofocus maxlength="50">
+            </label>
+            <label>Contraseña
+                <input type="password" name="password" autocomplete="current-password" required maxlength="72">
+            </label>
+            <button type="submit" class="btn primario" style="justify-content:center">Iniciar sesión</button>
+        </form>
+        <p style="margin-bottom:0;margin-top:1rem"><a th:href="@{/}">← Volver a la aplicación</a></p>
+    </div>
+</main>
+</body>
+</html>

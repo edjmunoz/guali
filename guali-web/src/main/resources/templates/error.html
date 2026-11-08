@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error · Guali Dev</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/tema.js}"></script>
+</head>
+<body>
+<main class="pagina-simple">
+    <div class="tarjeta" style="max-width:28rem;text-align:center">
+        <div style="font-size:2.5rem">😕</div>
+        <h1 style="font-size:1.3rem" th:text="${status == 404} ? 'Página no encontrada' : (${status == 403} ? 'Acceso denegado' : 'Ocurrió un error')">Ocurrió un error</h1>
+        <p class="texto-suave" th:text="'Código ' + ${status}">Código 500</p>
+        <a class="btn primario" th:href="@{/}">Volver al inicio</a>
+    </div>
+</main>
+</body>
+</html>

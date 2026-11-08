@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head th:replace="~{fragments/admin :: head('Estadísticas')}"></head>
+<body>
+<div class="admin-layout">
+    <nav th:replace="~{fragments/admin :: nav}"></nav>
+    <main class="admin-contenido">
+        <h1>Estadísticas de uso</h1>
+
+        <form class="tarjeta filtros" th:action="@{/admin/estadisticas}" method="get">
+            <label>Desde <input type="date" name="desde" th:value="${est.desde()}"></label>
+            <label>Hasta <input type="date" name="hasta" th:value="${est.hasta()}"></label>
+            <button type="submit" class="btn primario">Consultar</button>
+            <span class="texto-suave" style="font-size:.85rem">Intervalo: <span th:text="${#temporals.format(est.desde(), 'dd/MM/yyyy')}"></span>
+                – <span th:text="${#temporals.format(est.hasta(), 'dd/MM/yyyy')}"></span></span>
+        </form>
+
+        <section class="kpis">
+            <div class="kpi"><div class="valor" th:text="${est.visitantesUnicos()}">0</div><div class="etiqueta">Usuarios únicos que visitaron la página</div></div>
+            <div class="kpi"><div class="valor" th:text="${est.visitas()}">0</div><div class="etiqueta">Visitas totales (cargas de la página)</div></div>
+            <div class="kpi"><div class="valor" th:text="${est.leccionesAbiertas()}">0</div><div class="etiqueta">Lecciones abiertas</div></div>
+            <div class="kpi"><div class="valor" th:text="${est.leccionesCompletadas()}">0</div><div class="etiqueta">Lecciones completadas</div></div>
+        </section>
+
+        <div class="tarjeta" style="padding:0;overflow:auto">
+            <table class="tabla">
+                <thead><tr><th>Día</th><th style="text-align:right">Usuarios únicos</th><th style="text-align:right">Visitas</th><th class="celda-barra">Visitas por día</th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${est.dias()}">
+                    <td th:text="${#temporals.format(d.dia(), 'EEE dd/MM/yyyy')}">lun 01/01/2026</td>
+                    <td class="num" th:text="${d.visitantesUnicos()}">0</td>
+                    <td class="num" th:text="${d.visitas()}">0</td>
+                    <td class="celda-barra"><div class="barra-dia" th:if="${d.visitas() > 0}" th:style="'width:' + ${d.porcentaje()} + '%'"></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="texto-suave" style="font-size:.85rem;margin:0">Un "usuario único" es un navegador distinto (identificado con una cookie anónima). Las visitas de administradores no se cuentan.</p>
+    </main>
+</div>
+</body>
+</html>

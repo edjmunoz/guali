@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Administración Guali Dev'">Administración</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/tema.js}"></script>
+</head>
+<body>
+<nav th:fragment="nav" class="admin-nav">
+    <div class="marca"><span class="logo" aria-hidden="true">G</span> Administración</div>
+    <a th:href="@{/admin/usuarios}" th:classappend="${seccion == 'usuarios'} ? 'activo'">Usuarios administradores</a>
+    <a th:href="@{/admin/estadisticas}" th:classappend="${seccion == 'estadisticas'} ? 'activo'">Estadísticas de uso</a>
+    <div class="derecha">
+        <a th:href="@{/}">← Ir a la aplicación</a>
+        <span>👤 <strong th:text="${usuarioActual}">admin</strong></span>
+        <form th:action="@{/logout}" method="post"><button type="submit" class="btn-texto">Cerrar sesión</button></form>
+    </div>
+</nav>
+<div th:fragment="mensajes">
+    <div th:if="${mensaje}" class="alerta ok" th:text="${mensaje}"></div>
+    <div th:if="${error}" class="alerta error" th:text="${error}"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head th:replace="~{fragments/admin :: head(${form.id == null ? 'Nuevo usuario' : 'Editar usuario'})}"></head>
+<body>
+<div class="admin-layout">
+    <nav th:replace="~{fragments/admin :: nav}"></nav>
+    <main class="admin-contenido" style="max-width:36rem">
+        <h1 th:text="${form.esNuevo()} ? 'Nuevo administrador' : 'Editar administrador'">Usuario</h1>
+        <div th:replace="~{fragments/admin :: mensajes}"></div>
+
+        <form class="tarjeta formulario" th:action="@{/admin/usuarios/guardar}" th:object="${form}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+            <label>Usuario
+                <input type="text" th:field="*{username}" maxlength="50" required autocomplete="off">
+                <span class="error-campo" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </label>
+
+            <label>Nombre completo
+                <input type="text" th:field="*{nombreCompleto}" maxlength="120" required>
+                <span class="error-campo" th:if="${#fields.hasErrors('nombreCompleto')}" th:errors="*{nombreCompleto}"></span>
+            </label>
+
+            <label>
+                <span th:text="${form.esNuevo()} ? 'Contraseña (mínimo 8 caracteres)' : 'Nueva contraseña (déjala vacía para no cambiarla)'">Contraseña</span>
+                <input type="password" th:field="*{password}" maxlength="72" autocomplete="new-password"
+                       th:required="${form.esNuevo()}">
+                <span class="error-campo" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </label>
+
+            <label class="check">
+                <input type="checkbox" th:field="*{activo}"> Usuario activo (puede iniciar sesión)
+            </label>
+
+            <div style="display:flex;gap:.5rem;justify-content:flex-end">
+                <a class="btn" th:href="@{/admin/usuarios}">Cancelar</a>
+                <button type="submit" class="btn primario">Guardar</button>
+            </div>
+        </form>
+    </main>
+</div>
+</body>
+</html>

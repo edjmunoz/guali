@@ -1,0 +1,79 @@
+# Guali Dev — despliegue con Docker Compose
+#   docker compose up -d --build
+# Luego abrir http://localhost  (o la IP / dominio del servidor)
+#
+#  Internet ─▶ [CloudFront: HTTPS + CDN + AWS Shield (anti-DDoS) + WAF] ─▶ nginx (reverse proxy) ─▶ guali-web ─▶ mariadb
+#                                                                                   └──────▶ guali-compiler
+name: guali
+
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-guali_db}
+      MARIADB_USER: ${DB_USER:-guali}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Defina DB_ROOT_PASSWORD en .env}
+      TZ: America/Guatemala
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - datos-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [datos]
+
+  guali-compiler:
+    build: ./guali-compiler
+    restart: unless-stopped
+    environment:
+      GUALI_TOKEN_INTERNO: ${GUALI_TOKEN_INTERNO:?Defina GUALI_TOKEN_INTERNO en .env}
+      GUALI_TIMEOUT: "10"
+    # Aislamiento: el código de los estudiantes se ejecuta aquí, sin acceso
+    # a internet ni a la base de datos, con memoria y procesos limitados.
+    mem_limit: 768m
+    pids_limit: 256
+    read_only: false
+    networks: [compilador]
+
+  guali-web:
+    build: ./guali-web
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      guali-compiler:
+        condition: service_started
+    environment:
+      GUALI_DB_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-guali_db}
+      GUALI_DB_USER: ${DB_USER:-guali}
+      GUALI_DB_PASSWORD: ${DB_PASSWORD}
+      GUALI_COMPILADOR_URL: http://guali-compiler:8081
+      GUALI_TOKEN_INTERNO: ${GUALI_TOKEN_INTERNO}
+      GUALI_ADMIN_USUARIO: ${GUALI_ADMIN_USUARIO:-admin}
+      GUALI_ADMIN_PASSWORD: ${GUALI_ADMIN_PASSWORD:?Defina GUALI_ADMIN_PASSWORD en .env}
+    mem_limit: 768m
+    networks: [datos, compilador, publica]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [guali-web]
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks: [publica]
+
+networks:
+  publica: {}
+  datos:
+    internal: true
+  compilador:
+    internal: true
+
+volumes:
+  datos-mariadb: {}

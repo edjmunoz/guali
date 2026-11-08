@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head th:replace="~{fragments/admin :: head('Usuarios')}"></head>
+<body>
+<div class="admin-layout">
+    <nav th:replace="~{fragments/admin :: nav}"></nav>
+    <main class="admin-contenido">
+        <div class="fila-titulo">
+            <h1>Usuarios administradores</h1>
+            <a class="btn primario" th:href="@{/admin/usuarios/nuevo}">+ Nuevo administrador</a>
+        </div>
+        <div th:replace="~{fragments/admin :: mensajes}"></div>
+
+        <div class="tarjeta" style="padding:0;overflow:auto">
+            <table class="tabla">
+                <thead>
+                <tr><th>Usuario</th><th>Nombre</th><th>Estado</th><th>Creado</th><th style="text-align:right">Acciones</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${usuarios}">
+                    <td><strong th:text="${u.username}">admin</strong>
+                        <span th:if="${u.username == usuarioActual}" class="texto-suave">(tú)</span></td>
+                    <td th:text="${u.nombreCompleto}">Nombre</td>
+                    <td>
+                        <span th:if="${u.activo}" class="pastilla ok">Activo</span>
+                        <span th:unless="${u.activo}" class="pastilla no">Inactivo</span>
+                    </td>
+                    <td th:text="${#temporals.format(u.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td style="text-align:right;white-space:nowrap">
+                        <a class="btn chico" th:href="@{/admin/usuarios/{id}/editar(id=${u.id})}">Editar</a>
+                        <form th:if="${u.username != usuarioActual}" th:action="@{/admin/usuarios/{id}/eliminar(id=${u.id})}"
+                              method="post" style="display:inline" class="confirmar-eliminar">
+                            <button type="submit" class="btn peligro chico">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(usuarios)}"><td colspan="5" class="texto-suave">No hay usuarios.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

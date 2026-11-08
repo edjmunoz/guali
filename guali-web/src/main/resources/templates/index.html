@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" data-tema="claro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="es-admin" th:content="${esAdmin}">
+    <title>Guali Dev · Práctica de Java</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/tema.js}"></script>
+</head>
+<body>
+<div class="app">
+
+    <!-- ===================== Barra de menú ===================== -->
+    <header class="barra-menu">
+        <div class="marca">
+            <span class="logo" aria-hidden="true">G</span>
+            <span class="texto-marca">Guali Dev</span>
+        </div>
+
+        <nav class="menus" aria-label="Menú principal">
+            <div class="menu">
+                <button class="menu-boton" aria-haspopup="true" aria-expanded="false">Lección</button>
+                <div class="menu-lista" role="menu">
+                    <button role="menuitem" data-accion="abrir-leccion">Abrir lección… <span class="atajo">Ctrl+O</span></button>
+                    <button role="menuitem" data-accion="cerrar-leccion">Cerrar lección</button>
+                </div>
+            </div>
+
+            <div class="menu">
+                <button class="menu-boton" aria-haspopup="true" aria-expanded="false">Configuración</button>
+                <div class="menu-lista" role="menu">
+                    <div class="titulo-grupo">Fuente</div>
+                    <button role="menuitem" data-accion="fuente-mas">Aumentar tamaño <span class="atajo">A+</span></button>
+                    <button role="menuitem" data-accion="fuente-menos">Disminuir tamaño <span class="atajo">A−</span></button>
+                    <button role="menuitem" data-accion="fuente-normal">Tamaño normal</button>
+                    <hr>
+                    <div class="titulo-grupo">Tema</div>
+                    <button role="menuitem" data-accion="tema-claro">☀️ Claro</button>
+                    <button role="menuitem" data-accion="tema-oscuro">🌙 Oscuro</button>
+                    <th:block th:if="${esAdmin}">
+                        <hr>
+                        <div class="titulo-grupo">Lecciones (administrador)</div>
+                        <button role="menuitem" data-accion="importar">Importar compendio (.zip)…</button>
+                        <button role="menuitem" data-accion="exportar">Exportar lecciones (.zip)</button>
+                        <button role="menuitem" data-accion="eliminar">Eliminar una lección…</button>
+                    </th:block>
+                </div>
+            </div>
+
+            <div class="menu">
+                <button class="menu-boton" aria-haspopup="true" aria-expanded="false">Historial</button>
+                <div class="menu-lista" role="menu">
+                    <button role="menuitem" data-accion="historial">Ver historial</button>
+                </div>
+            </div>
+
+            <div class="menu">
+                <button class="menu-boton" aria-haspopup="true" aria-expanded="false">Ayuda</button>
+                <div class="menu-lista" role="menu">
+                    <button role="menuitem" data-accion="ayuda">¿Cómo usar Guali Dev? <span class="atajo">F1</span></button>
+                    <button role="menuitem" data-accion="acerca">Acerca de</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sesion-admin">
+            <th:block th:if="${esAdmin}">
+                <span>👤 <strong th:text="${usuario}">admin</strong></span>
+                <a th:href="@{/admin}">Administración</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn-texto">Cerrar sesión</button>
+                </form>
+            </th:block>
+            <a th:unless="${esAdmin}" th:href="@{/login}">Acceso administrador</a>
+        </div>
+    </header>
+
+    <!-- ===================== Título de la lección activa ===================== -->
+    <section class="titulo-leccion" aria-live="polite">
+        <span class="etiqueta">Lección activa:</span>
+        <h1 id="titulo-activo">Ninguna lección abierta</h1>
+        <span id="insignia-objetivo" class="insignia oculto"></span>
+        <span id="insignia-estado" class="estado oculto"></span>
+    </section>
+
+    <!-- ===================== Área de trabajo ===================== -->
+    <main class="area-trabajo">
+        <section class="panel panel-leccion" aria-label="Panel de lección activa">
+            <div class="panel-cabecera">📘 Lección</div>
+            <article id="contenido-leccion" class="markdown">
+                <div class="vacio">
+                    <div>
+                        <div class="icono">📚</div>
+                        <p>No hay ninguna lección abierta.</p>
+                        <button class="btn primario" data-accion="abrir-leccion">Abrir una lección</button>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel panel-editor" aria-label="Editor de código">
+            <div class="panel-cabecera">
+                ✍️ Editor de código Java
+                <span class="nota">Escribe el código a mano · pegar está deshabilitado</span>
+            </div>
+            <div class="editor">
+                <pre class="numeros" id="numeros" aria-hidden="true">1</pre>
+                <textarea id="editor" class="codigo" spellcheck="false" autocomplete="off" autocapitalize="off"
+                          aria-label="Código Java" placeholder="Escribe aquí tu código Java…"></textarea>
+            </div>
+            <div class="acciones">
+                <button id="btn-compilar" class="btn primario" title="Compilar (Ctrl+Enter)">▶ Compilar</button>
+                <button id="btn-ejecutar" class="btn exito" disabled
+                        title="Disponible cuando la última compilación fue exitosa">⚡ Ejecutar</button>
+                <span id="estado-accion"></span>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================== Consola ===================== -->
+    <section class="panel panel-consola" aria-label="Consola">
+        <div class="panel-cabecera">
+            🖥️ Consola
+            <button id="btn-limpiar" class="btn-texto" style="margin-left:auto">Limpiar</button>
+        </div>
+        <pre id="consola" aria-live="polite"></pre>
+    </section>
+</div>
+
+<!-- ===================== Diálogos ===================== -->
+<dialog id="dlg-abrir" aria-labelledby="t-abrir">
+    <div class="dlg">
+        <div class="dlg-cabecera"><h2 id="t-abrir">Abrir lección</h2><button class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+        <div class="dlg-cuerpo">
+            <input type="search" class="campo-buscar" id="buscar-leccion" placeholder="Buscar lección…" aria-label="Buscar lección">
+            <ul class="lista-lecciones" id="lista-abrir"></ul>
+        </div>
+        <div class="dlg-pie"><button class="btn" data-cerrar>Cancelar</button></div>
+    </div>
+</dialog>
+
+<dialog id="dlg-historial" aria-labelledby="t-historial">
+    <div class="dlg">
+        <div class="dlg-cabecera"><h2 id="t-historial">Historial de sesión</h2><button class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+        <div class="dlg-cuerpo">
+            <p class="texto-suave" style="margin-top:0">Registro de las lecciones abiertas en este navegador. Se guarda en la base de datos, así que se conserva aunque cierres la página.</p>
+            <div style="overflow:auto">
+                <table class="tabla">
+                    <thead><tr><th>Lección</th><th>Fecha inicio</th><th>Fecha final</th><th>Estado</th></tr></thead>
+                    <tbody id="tabla-historial"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="dlg-pie"><button class="btn primario" data-cerrar>Cerrar</button></div>
+    </div>
+</dialog>
+
+<dialog id="dlg-ayuda" aria-labelledby="t-ayuda">
+    <div class="dlg">
+        <div class="dlg-cabecera"><h2 id="t-ayuda">¿Cómo usar Guali Dev?</h2><button class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+        <div class="dlg-cuerpo markdown" style="padding-top:.5rem">
+            <h3>1. Abre una lección</h3>
+            <p>Menú <strong>Lección → Abrir lección</strong>. A la izquierda verás la explicación y el código que debes escribir. Arriba aparece el <strong>objetivo</strong> de la lección.</p>
+            <h3>2. Escribe el código a mano</h3>
+            <p>En el editor de la derecha. <strong>Pegar está deshabilitado</strong> a propósito: escribir el código te ayuda a memorizar la sintaxis y a entender los errores.</p>
+            <h3>3. Compila y ejecuta</h3>
+            <ul>
+                <li><strong>Compilar</strong> (o <code>Ctrl+Enter</code>): revisa tu código. Los errores aparecen en la consola con el número de línea.</li>
+                <li><strong>Ejecutar</strong>: solo se habilita si la última compilación fue exitosa. Si cambias el código, debes compilar otra vez.</li>
+            </ul>
+            <h3>4. Cumple el objetivo</h3>
+            <table>
+                <thead><tr><th>Objetivo</th><th>Se completa cuando…</th></tr></thead>
+                <tbody>
+                <tr><td>Compilar con error</td><td>al compilar aparece al menos un error</td></tr>
+                <tr><td>Compilar exitoso</td><td>al compilar hay 0 errores</td></tr>
+                <tr><td>Ejecutar con error</td><td>compila bien pero falla al ejecutar</td></tr>
+                <tr><td>Ejecutar exitoso</td><td>compila y se ejecuta sin errores</td></tr>
+                </tbody>
+            </table>
+            <h3>5. Revisa tu historial</h3>
+            <p>Menú <strong>Historial → Ver historial</strong>: cada vez que abres una lección queda registrada como <em>Completada</em> o <em>Pendiente</em>.</p>
+            <h3>Configuración</h3>
+            <p>En <strong>Configuración</strong> puedes cambiar el tamaño de letra y el tema claro u oscuro. Se recuerda en este navegador.</p>
+            <h3>Limitaciones del compilador</h3>
+            <ul>
+                <li>No se puede leer del teclado (<code>Scanner</code>): el programa no recibe entrada.</li>
+                <li>Todo el código debe estar en un solo archivo y sin librerías externas.</li>
+                <li>Un programa que tarde más de 10 segundos se detiene automáticamente.</li>
+                <li>Puedes usar Java 25 compacto (<code>void main()</code>) o una clase con <code>public static void main</code>.</li>
+            </ul>
+        </div>
+        <div class="dlg-pie"><button class="btn primario" data-cerrar>Entendido</button></div>
+    </div>
+</dialog>
+
+<dialog id="dlg-acerca" aria-labelledby="t-acerca">
+    <div class="dlg">
+        <div class="dlg-cabecera"><h2 id="t-acerca">Acerca de Guali Dev</h2><button class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+        <div class="dlg-cuerpo">
+            <p>Aplicación para practicar programación introductoria en Java mediante lecciones cortas, sin asistencia de herramientas externas.</p>
+            <p class="texto-suave">Proyecto del curso Desarrollo Web · Universidad Mariano Gálvez de Guatemala.<br>
+                Compilación y ejecución con la librería guali-dev 1.0.0.</p>
+        </div>
+        <div class="dlg-pie"><button class="btn primario" data-cerrar>Cerrar</button></div>
+    </div>
+</dialog>
+
+<th:block th:if="${esAdmin}">
+    <dialog id="dlg-importar" aria-labelledby="t-importar">
+        <form class="dlg" id="form-importar">
+            <div class="dlg-cabecera"><h2 id="t-importar">Importar compendio de lecciones</h2><button type="button" class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+            <div class="dlg-cuerpo formulario">
+                <p class="texto-suave" style="margin:0">Selecciona un archivo <code>.zip</code> con una carpeta por lección. Cada carpeta debe tener <code>leccion.md</code>, <code>config.txt</code> y, opcionalmente, imágenes. Si una lección ya existe (mismo nombre de carpeta) se reemplaza.</p>
+                <label>Archivo .zip
+                    <input type="file" id="archivo-zip" name="archivo" accept=".zip,application/zip" required>
+                </label>
+                <div id="resultado-importar"></div>
+            </div>
+            <div class="dlg-pie">
+                <button type="button" class="btn" data-cerrar>Cerrar</button>
+                <button type="submit" class="btn primario" id="btn-importar">Importar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dlg-eliminar" aria-labelledby="t-eliminar">
+        <div class="dlg">
+            <div class="dlg-cabecera"><h2 id="t-eliminar">Eliminar una lección</h2><button class="cerrar-x" data-cerrar aria-label="Cerrar">×</button></div>
+            <div class="dlg-cuerpo">
+                <p class="texto-suave" style="margin-top:0">La lección se borra de la base de datos. El historial de los estudiantes se conserva.</p>
+                <ul class="lista-lecciones" id="lista-eliminar"></ul>
+            </div>
+            <div class="dlg-pie"><button class="btn" data-cerrar>Cerrar</button></div>
+        </div>
+    </dialog>
+</th:block>
+
+<dialog id="dlg-confirmar" aria-labelledby="t-confirmar">
+    <div class="dlg">
+        <div class="dlg-cabecera"><h2 id="t-confirmar">Confirmar</h2></div>
+        <div class="dlg-cuerpo"><p id="texto-confirmar" style="margin:0"></p></div>
+        <div class="dlg-pie">
+            <button class="btn" id="confirmar-no">Cancelar</button>
+            <button class="btn peligro" id="confirmar-si">Sí, continuar</button>
+        </div>
+    </div>
+</dialog>
+
+<div id="avisos" class="avisos" aria-live="polite"></div>
+
+<script th:src="@{/js/markdown.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
